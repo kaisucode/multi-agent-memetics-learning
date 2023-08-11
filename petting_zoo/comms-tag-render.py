@@ -2,22 +2,18 @@
 from pettingzoo.mpe import simple_v2, simple_world_comm_v2
 from agents.dqn_model import Agent
 
-import time
 
 #env = simple_tag_v2.env(render_mode='human')
 #  env = simple_v2.env(render_mode='human', max_cycles=200)
 
 num_food = 1
-env = simple_world_comm_v2.env(max_cycles=200, 
-#env = simple_world_comm_v2.env(max_cycles=50, 
+env = simple_world_comm_v2.env(max_cycles=200, render_mode='human',
         num_good=1, num_adversaries=1, 
         num_obstacles=0, num_food=num_food, num_forests=0)
 
 env.reset()
 
-startTime = time.time()
-
-episodes = 400
+episodes = 200
 agent_list = [] 
 lr = 0.005
 
@@ -25,7 +21,7 @@ leader_obs_dim = 12 + num_food * 2
 #leader_obs_dim = 6
 good_agent_obs_dim = 6 + num_food * 2
 
-for i in range(env.num_agents):
+for i in range(env.num_agents): 
 
     if i == 0: # leader
         agent_dqn = Agent(gamma=0.998, epsilon=0.99, lr=lr, 
@@ -38,38 +34,22 @@ for i in range(env.num_agents):
 
     agent_list.append(agent_dqn)
 
-done_n = None
-
-numAgents = env.num_agents
 
 for ep_i in range(episodes): 
 
-    if done_n != None:
-        print("done_n at start: ", done_n)
-    print("env num agents: ", numAgents)
-    done_n = [False for _ in range(numAgents)]
-    #done_n = [False for _ in range(2)]
-    print("done_n at start2: ", done_n)
-    old_obs = [None for _ in range(numAgents)] 
-    old_action = [None for _ in range(numAgents)] 
+    done_n = [False for _ in range(env.num_agents)]
+    old_obs = [None for _ in range(env.num_agents)] 
+    old_action = [None for _ in range(env.num_agents)] 
     ep_reward = 0
 
     #env.seed(ep_i)
     env.reset(seed=ep_i)
-    print("done_n at start3: ", done_n)
     
 
-    step = 0
-    print("ep: ", ep_i)
-    #print("num agenmts: ", env.num_agents)
-    print(done_n)
     while not all(done_n): 
 
-        #if step % 10 == 0:
-        #    print("step: ", step)
-        #step += 1
 	
-        for agent_i in range(numAgents):
+        for agent_i in range(env.num_agents):
             obs_i, reward_i, termination, truncation, info = env.last() 
 
             #print("agent_i: ", agent_i)
@@ -83,8 +63,7 @@ for ep_i in range(episodes):
             done_n[agent_i] = termination or truncation
             if termination or truncation: 
                 action_i = None
-                env.step(action_i)
-                continue
+                break
             else: 
                 action_i = agent_list[agent_i].choose_action(obs_i)
                 action_i = action_i[0]
@@ -96,14 +75,9 @@ for ep_i in range(episodes):
             #new_obs_i, reward_i, termination, truncation, info = env.last() 
             #print("new_obs_i.shape: ", new_obs_i.shape)
 
-    print("done_n at end: ", done_n)
-    done_n = [False for _ in range(2)]
     print('Episode #{} Reward: {}\n'.format(ep_i, ep_reward))
     with open('results.txt', 'a') as f:
         f.write('Episode #{} Reward: {}\n'.format(ep_i, ep_reward))
 
-endTime = time.time()
-print('time elapsed {}\n'.format(endTime - startTime))
 env.close()
-
 

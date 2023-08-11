@@ -2,22 +2,19 @@
 from pettingzoo.mpe import simple_v2, simple_world_comm_v2
 from agents.dqn_model import Agent
 
-import time
 
 #env = simple_tag_v2.env(render_mode='human')
 #  env = simple_v2.env(render_mode='human', max_cycles=200)
 
 num_food = 1
-env = simple_world_comm_v2.env(max_cycles=200, 
-#env = simple_world_comm_v2.env(max_cycles=50, 
+#env = simple_world_comm_v2.env(max_cycles=200, 
+env = simple_world_comm_v2.env(max_cycles=50, 
         num_good=1, num_adversaries=1, 
         num_obstacles=0, num_food=num_food, num_forests=0)
 
 env.reset()
 
-startTime = time.time()
-
-episodes = 400
+episodes = 200
 agent_list = [] 
 lr = 0.005
 
@@ -40,36 +37,32 @@ for i in range(env.num_agents):
 
 done_n = None
 
-numAgents = env.num_agents
-
 for ep_i in range(episodes): 
 
     if done_n != None:
         print("done_n at start: ", done_n)
-    print("env num agents: ", numAgents)
-    done_n = [False for _ in range(numAgents)]
+    done_n = [False for _ in range(env.num_agents)]
     #done_n = [False for _ in range(2)]
     print("done_n at start2: ", done_n)
-    old_obs = [None for _ in range(numAgents)] 
-    old_action = [None for _ in range(numAgents)] 
+    old_obs = [None for _ in range(env.num_agents)] 
+    old_action = [None for _ in range(env.num_agents)] 
     ep_reward = 0
 
     #env.seed(ep_i)
     env.reset(seed=ep_i)
-    print("done_n at start3: ", done_n)
     
 
     step = 0
     print("ep: ", ep_i)
-    #print("num agenmts: ", env.num_agents)
+    print("num agenmts: ", env.num_agents)
     print(done_n)
     while not all(done_n): 
 
-        #if step % 10 == 0:
-        #    print("step: ", step)
-        #step += 1
+        if step % 10 == 0:
+            print("step: ", step)
+        step += 1
 	
-        for agent_i in range(numAgents):
+        for agent_i in range(env.num_agents):
             obs_i, reward_i, termination, truncation, info = env.last() 
 
             #print("agent_i: ", agent_i)
@@ -102,8 +95,5 @@ for ep_i in range(episodes):
     with open('results.txt', 'a') as f:
         f.write('Episode #{} Reward: {}\n'.format(ep_i, ep_reward))
 
-endTime = time.time()
-print('time elapsed {}\n'.format(endTime - startTime))
 env.close()
-
 
